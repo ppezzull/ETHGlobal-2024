@@ -3,41 +3,46 @@ import { DeployFunction } from "hardhat-deploy/types";
 import { Contract } from "ethers";
 
 /**
- * Deploys a contract named "YourContract" using the deployer account and
- * constructor arguments set to the deployer address
+ * Deploys the VerifyMyDevice and CertificationNFT contracts
  *
  * @param hre HardhatRuntimeEnvironment object.
  */
 const deployYourContract: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
-  /*
-    On localhost, the deployer account is the one that comes with Hardhat, which is already funded.
-
-    When deploying to live networks (e.g `yarn deploy --network sepolia`), the deployer account
-    should have sufficient balance to pay for the gas fees for contract creation.
-
-    You can generate a random account with `yarn generate` which will fill DEPLOYER_PRIVATE_KEY
-    with a random private key in the .env file (then used on hardhat.config.ts)
-    You can run the `yarn account` command to check your balance in every network.
-  */
   const { deployer } = await hre.getNamedAccounts();
   const { deploy } = hre.deployments;
 
-  await deploy("MaintenanceBook", {
+  // Step 1: Deploy the CertificationNFT contract
+  const certificationNFTDeployment = await deploy("CertificationNFT", {
     from: deployer,
-    // Contract constructor arguments
     args: [],
     log: true,
-    // autoMine: can be passed to the deploy function to make the deployment process faster on local networks by
-    // automatically mining the contract deployment transaction. There is no effect on live networks.
     autoMine: true,
   });
 
-  // Get the deployed contract to interact with it after deploying.
-  const yourContract = await hre.ethers.getContract<Contract>("MaintenanceBook", deployer);
+  // Step 2: Deploy the USDT Mock Token contract (if not already deployed)
+  const usdtTokenDeployment = await deploy("MockUSDT", {
+    from: deployer,
+    args: [100000], // Initial supply of 1,000,000 USDT
+    log: true,
+    autoMine: true,
+  });
+
+  // Step 3: Deploy the VerifyMyDevice contract
+  await deploy("VerifyMyDevice", {
+    from: deployer,
+    args: [usdtTokenDeployment.address, certificationNFTDeployment.address], // Pass USDT and CertificationNFT addresses
+    log: true,
+    autoMine: true,
+  });
+
+  // Step 4: Get the deployed contracts to interact with them after deploying.
+  await hre.ethers.getContract<Contract>("VerifyMyDevice", deployer);
+  await hre.ethers.getContract<Contract>("CertificationNFT", deployer);
+  await hre.ethers.getContract<Contract>("MockUSDT", deployer);
 };
 
 export default deployYourContract;
 
 // Tags are useful if you have multiple deploy files and only want to run one of them.
 // e.g. yarn deploy --tags YourContract
-deployYourContract.tags = ["MaintenanceBook"];
+deployYourContract.tags = ["VerifyMyDevice"];
