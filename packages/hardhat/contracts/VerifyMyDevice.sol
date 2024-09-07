@@ -1,149 +1,112 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "./CertificationNFT.sol"; // Import the CertificationNFT contract
+
 contract VerifyMyDevice {
-    struct Certification {
-        string deviceType; // "phone" or "laptop"
-        string deviceId; // Unique identifier for the device
-        address issuer; // Address of the certification issuer
-        string details; // Certification details
-        uint256 issueDate; // Timestamp of when the certification was issued
-        uint256 expiryDate; // Timestamp of when the certification expires
-        uint256 price; // Price of the certification
+    IERC20 public usdtToken; // Interface for the USDT token contract
+    CertificationNFT public certificationNFT; // Reference to the CertificationNFT contract
+
+    struct Product {
+        uint256 certificationId; // ID of the associated certification NFT
+        address owner; // Current owner of the product
+        string brand; // Brand of the product
+        string model; // Model of the product
+        string variant; // Variant of the product
+        string serialNumberHash; // Hash of the serial number
+        uint256 price; // Price in USDT
+        bool sold; // New boolean feature to indicate if the product has been sold
     }
 
-    struct Booking {
-        address deviceOwner;
-        string deviceId;
-        address issuer;
-        uint256 bookingDate;
-        uint256 price; // Total price including interest
-        bool isConfirmed;
-        Certification certification; // Reference to associated certification
+    struct Seller {
+        address sellerAddress; // Seller's address
+        string name; // Seller's name
+        string location; // Seller's location
+        uint256[] devices; // Array of product IDs
     }
 
-    struct Account {
-        address accountAddress; // Address of the account
-        bool isOwner; // Indicates if the account is an owner
-        string[] availableDevices; // Devices the account can certify
-        uint256[] prices; // Prices for certifications
-        uint256[] availability; // Availability slots
+    mapping(uint256 => Product) public products; // Product ID to Product
+    mapping(address => Seller) public sellers; // Address to Seller
+
+    event ProductRegistered(uint256 indexed productId, address indexed owner, string brand, string model);
+    event CertificationAssigned(address indexed owner, uint256 indexed tokenId);
+    event ProductSold(uint256 indexed productId, address indexed prevOwner, address indexed newOwner);
+
+    constructor(address _usdtAddress, address _certificationNFTAddress) {
+        usdtToken = IERC20(_usdtAddress); // Set the USDT token contract address
+        certificationNFT = CertificationNFT(_certificationNFTAddress); // Set the CertificationNFT contract address
     }
 
-    mapping(address => Certification[]) public certifications; // Device owner to certifications
-    mapping(address => Booking[]) public bookings; // Device owner to bookings
-    mapping(address => mapping(address => Booking[])) public userBookings; // User to all their bookings (both buying and selling)
-    mapping(address => Account) public accounts; // Accounts
-
-    uint256 public totalInterest; // Total interest collected
-
-    event CertificationIssued(address indexed owner, string deviceId, address indexed issuer);
-    event BookingCreated(address indexed owner, string deviceId, address indexed issuer, uint256 price);
-    event AccountCreated(address indexed accountAddress, bool isOwner);
-    event InterestWithdrawn(address indexed owner, uint256 amount);
-
-    // Function for creating an account
-    function createAccount(bool isOwner) external {
-        require(accounts[msg.sender].accountAddress == address(0), "Account already exists");
-        
-        accounts[msg.sender] = Account({
-            accountAddress: msg.sender,
-            isOwner: isOwner,
-            availableDevices: new string[](0),
-            prices: new uint256[](0),
-            availability: new uint256[](0)
+    // Function to set up a product
+    function setupProduct(
+        string memory brand,
+        string memory model,
+        string memory variant,
+        string memory serialNumberHash,
+        uint256 price
+    ) external returns (uint256) {
+        uint256 productId = uint256(keccak256(abi.encodePacked(msg.sender, block.timestamp))); // Unique product ID
+        products[productId] = Product({
+            certificationId: 0, // Initially no certification
+            owner: msg.sender,
+            brand: brand,
+            model: model,
+            variant: variant,
+            serialNumberHash: serialNumberHash,
+            price: price,
+            sold: false // Initialize sold to false
         });
 
-        emit AccountCreated(msg.sender, isOwner);
+        sellers[msg.sender].devices.push(productId); // Add product to seller's devices
+        emit ProductRegistered(productId, msg.sender, brand, model);
+        return productId;
     }
 
-    // Function for device owners to book a certification slot
-    function bookCertification(string memory deviceId, address issuer, Certification memory certification) external {
-        require(accounts[issuer].accountAddress != address(0), "Issuer not available");
-        require(accounts[msg.sender].accountAddress != address(0), "Account does not exist");
-        
-        // Get the price of the certification
-        uint256 price = accounts[issuer].prices[0]; // Assuming the first price is used for simplicity
-        uint256 interest = (price * 3) / 100; // Calculate 3% interest
-        uint256 totalPrice = price + interest; // Total price including interest
+    // Function to assign a certification to a registered product
+    function assignCertification(
+        uint256 productId,
+        string memory condition,
+        string memory picture
+    ) external {
+        Product storage product = products[productId];
+        require(product.owner == msg.sender, "Only the owner can assign a certification");
 
-        Booking memory newBooking = Booking({
-            deviceOwner: msg.sender,
-            deviceId: deviceId,
-            issuer: issuer,
-            bookingDate: block.timestamp,
-            price: totalPrice,
-            isConfirmed: false,
-            certification: certification // Associate the relevant certification
-        });
+        // Transfer USDT from the caller to pay for the certification
+        usdtToken.transferFrom(msg.sender, address(this), product.price);
 
-        bookings[msg.sender].push(newBooking);
-        userBookings[msg.sender][issuer].push(newBooking); // Store in userBookings mapping
-        userBookings[issuer][msg.sender].push(newBooking); // Store in userBookings mapping for issuer
-        totalInterest += interest; // Add interest to the total interest collected
-        emit BookingCreated(msg.sender, deviceId, issuer, totalPrice);
+        // Mint the certification NFT
+        uint256 tokenId = certificationNFT.mintCertification(
+            msg.sender,
+            product.brand,
+            product.model,
+            product.variant,
+            product.serialNumberHash,
+            condition,
+            picture
+        );
+
+        product.certificationId = tokenId; // Assign the certification ID to the product
+        emit CertificationAssigned(msg.sender, tokenId);
     }
 
-    // Function for accounts to create certification
-    function createCertification(string memory deviceType, string memory deviceId, string memory details, uint256 expiryDate, uint256 price) external {
-        require(accounts[msg.sender].accountAddress != address(0), "Account does not exist");
-        
-        Certification memory newCert = Certification({
-            deviceType: deviceType,
-            deviceId: deviceId,
-            issuer: msg.sender, // Use account.accountAddress as the issuer
-            details: details,
-            issueDate: block.timestamp,
-            expiryDate: expiryDate,
-            price: price
-        });
+    // Function to sell a certified product
+    function sellCertification(uint256 productId, address newOwner, uint256 price) external {
+        Product storage product = products[productId];
+        require(product.owner == msg.sender, "Only the owner can sell the certification");
+        require(newOwner != address(0), "Invalid new owner address");
+        require(!product.sold, "Product has already been sold"); // Check if the product is already sold
 
-        certifications[msg.sender].push(newCert);
-        emit CertificationIssued(msg.sender, deviceId, msg.sender);
-    }
+        // Transfer the certification NFT to the new owner
+        certificationNFT.safeTransferFrom(msg.sender, newOwner, product.certificationId);
 
-    // Function for device owners to view their certifications
-    function viewCertifications() external view returns (Certification[] memory) {
-        require(accounts[msg.sender].accountAddress != address(0), "Account does not exist");
-        return certifications[msg.sender];
-    }
+        // Update the product owner and mark it as sold
+        product.owner = newOwner;
+        product.sold = true; // Mark the product as sold
 
-    // Function for accounts to set their availability and prices
-    function setAccountDetails(string[] memory devices, uint256[] memory prices, uint256[] memory availability) external {
-        require(accounts[msg.sender].accountAddress != address(0), "Account does not exist");
-        
-        accounts[msg.sender].availableDevices = devices;
-        accounts[msg.sender].prices = prices;
-        accounts[msg.sender].availability = availability;
-    }
+        // Transfer USDT from the new owner to the seller
+        usdtToken.transferFrom(newOwner, msg.sender, price);
 
-    // Function to view all bookings for a user (both selling and buying)
-    function viewAllBookings() external view returns (Booking[] memory) {
-        require(accounts[msg.sender].accountAddress != address(0), "Account does not exist");
-        
-        // Concatenate all bookings for the user
-        Booking[] memory allBookings = new Booking[](userBookings[msg.sender][msg.sender].length + userBookings[msg.sender][address(0)].length);
-        uint256 index = 0;
-        
-        // Add user's selling bookings
-        for (uint256 i = 0; i < userBookings[msg.sender][msg.sender].length; i++) {
-            allBookings[index++] = userBookings[msg.sender][msg.sender][i];
-        }
-        
-        // Add user's buying bookings
-        for (uint256 i = 0; i < userBookings[msg.sender][address(0)].length; i++) {
-            allBookings[index++] = userBookings[msg.sender][address(0)][i];
-        }
-        
-        return allBookings;
-    }
-
-    // Function for owners to withdraw interest
-    function withdrawInterest() external {
-        require(accounts[msg.sender].isOwner, "Only owners can withdraw interest");
-        uint256 amount = totalInterest;
-        totalInterest = 0;
-        payable(msg.sender).transfer(amount);
-        emit InterestWithdrawn(msg.sender, amount);
+        emit ProductSold(productId, msg.sender, newOwner);
     }
 }
