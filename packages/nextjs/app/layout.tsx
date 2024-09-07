@@ -1,12 +1,14 @@
 import "@rainbow-me/rainbowkit/styles.css";
+import Layout from "~~/components/Layout";
 import { ScaffoldEthAppWithProviders } from "~~/components/ScaffoldEthAppWithProviders";
 import { ThemeProvider } from "~~/components/ThemeProvider";
+// Import our new Layout component
 import "~~/styles/globals.css";
 import { getMetadata } from "~~/utils/scaffold-eth/getMetadata";
 
 export const metadata = getMetadata({
-  title: "Scaffold-ETH 2 App",
-  description: "Built with 🏗 Scaffold-ETH 2",
+  title: "VerifyMyDevice", // Updated title
+  description: "Proof of Condition", // Updated description
 });
 
 const ScaffoldEthApp = ({ children }: { children: React.ReactNode }) => {
@@ -14,7 +16,9 @@ const ScaffoldEthApp = ({ children }: { children: React.ReactNode }) => {
     <html suppressHydrationWarning>
       <body>
         <ThemeProvider enableSystem>
-          <ScaffoldEthAppWithProviders>{children}</ScaffoldEthAppWithProviders>
+          <ScaffoldEthAppWithProviders>
+            <Layout>{children}</Layout>
+          </ScaffoldEthAppWithProviders>
         </ThemeProvider>
       </body>
     </html>
