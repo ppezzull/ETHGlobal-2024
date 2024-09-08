@@ -2,7 +2,10 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import { useAccount } from "wagmi";
+import { useScaffoldReadContract } from "~~/hooks/scaffold-eth";
 
+// Interface for Certification data
 interface Certification {
   id: string;
   deviceBrand: string;
@@ -11,63 +14,87 @@ interface Certification {
   status: "Refunded" | "Completed" | "Pending";
 }
 
-const MyCertifications: React.FC = () => {
-  const [certifications, setCertifications] = useState<Certification[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchCertifications = async () => {
-      // Simulating an API call or blockchain read
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Mock data
-      const mockCertifications: Certification[] = [
-        { id: "1", deviceBrand: "Apple", deviceModel: "iPhone 12", issueDate: "2023-05-15", status: "Refunded" },
-        { id: "2", deviceBrand: "Samsung", deviceModel: "Galaxy S21", issueDate: "2023-06-20", status: "Pending" },
-        { id: "3", deviceBrand: "Google", deviceModel: "Pixel 6", issueDate: "2023-07-10", status: "Completed" },
-      ];
-
-      setCertifications(mockCertifications);
-      setIsLoading(false);
-    };
-
-    fetchCertifications();
-  }, []);
+// New CertificationItem component
+const CertificationItem: React.FC<{ certId: bigint }> = ({ certId }) => {
+  const { data: certificate, isLoading } = useScaffoldReadContract({
+    contractName: "VerifyMyDevice",
+    functionName: "getCertificateDetails",
+    args: [certId],
+  });
 
   if (isLoading) {
+    return <div className="text-center mt-8">Loading certification details...</div>;
+  }
+
+  if (!certificate) {
+    return <div>Certificate not found</div>;
+  }
+
+  const certification: Certification = {
+    id: certId.toString(),
+    deviceBrand: certificate.deviceBrand as string,
+    deviceModel: certificate.deviceModel as string,
+    issueDate: new Date().toISOString().split("T")[0], // Get current date
+    status: certificate.isCompleted ? "Completed" : certificate.isRefunded ? "Refunded" : "Pending",
+  };
+
+  return (
+    <Link href={`/certifications/${certification.id}`} key={certification.id} className="block">
+      <div className="bg-base-200 shadow-md rounded p-4 hover:shadow-lg transition-shadow">
+        <h2 className="text-xl font-semibold mb-2">
+          {certification.deviceBrand} {certification.deviceModel}
+        </h2>
+        <p>
+          <strong>Issue Date:</strong> {certification.issueDate}
+        </p>
+        <p>
+          <strong>Status:</strong>{" "}
+          <span
+            className={`
+              ${certification.status === "Completed" ? "text-green-600" : ""}
+              ${certification.status === "Pending" ? "text-yellow-600" : ""}
+              ${certification.status === "Refunded" ? "text-red-600" : ""}
+            `}
+          >
+            {certification.status}
+          </span>
+        </p>
+      </div>
+    </Link>
+  );
+};
+
+// Main MyCertifications component
+const MyCertifications: React.FC = () => {
+  const { address } = useAccount();
+  const [certificateIds, setCertificateIds] = useState<bigint[]>([]);
+
+  const { data: fetchedCertificateIds, isLoading: isCertificateIdsLoading } = useScaffoldReadContract({
+    contractName: "VerifyMyDevice",
+    functionName: "getAllCertificatesByBuyer",
+    args: [address as string],
+  });
+
+  useEffect(() => {
+    console.log(fetchedCertificateIds, "============");
+    if (fetchedCertificateIds) {
+      setCertificateIds(fetchedCertificateIds);
+    }
+  }, [fetchedCertificateIds]);
+
+  if (isCertificateIdsLoading) {
     return <div className="text-center mt-8">Loading certifications...</div>;
   }
 
   return (
     <div className="container mx-auto px-2 py-2">
       <h1 className="text-3xl font-bold mb-6">My Certifications</h1>
-      {certifications.length === 0 ? (
-        <p>You dont have any certifications yet.</p>
+      {certificateIds.length === 0 ? (
+        <p>You don't have any certifications yet.</p>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {certifications.map(cert => (
-            <Link href={`/certifications/${cert.id}`} key={cert.id} className="block">
-              <div className="bg-base-200 shadow-md rounded p-4 hover:shadow-lg transition-shadow">
-                <h2 className="text-xl font-semibold mb-2">
-                  {cert.deviceBrand} {cert.deviceModel}
-                </h2>
-                <p>
-                  <strong>Issue Date:</strong> {cert.issueDate}
-                </p>
-                <p>
-                  <strong>Status:</strong>{" "}
-                  <span
-                    className={`
-                  ${cert.status === "Completed" ? "text-green-600" : ""}
-                  ${cert.status === "Pending" ? "text-yellow-600" : ""}
-                  ${cert.status === "Refunded" ? "text-red-600" : ""}
-                `}
-                  >
-                    {cert.status}
-                  </span>
-                </p>
-              </div>
-            </Link>
+          {certificateIds.map(certId => (
+            <CertificationItem certId={certId} key={certId.toString()} />
           ))}
         </div>
       )}

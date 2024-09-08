@@ -121,6 +121,16 @@ contract VerifyMyDevice is ReentrancyGuard {
 		emit SellerAccountUpdated(msg.sender, _name, _location);
 	}
 
+
+	function getSellerDetailsByOfferId(uint256 _offerId) external view returns (string memory, string memory) {
+    require(_offerId > 0 && _offerId <= allProducts.length, "Invalid offer ID");
+    
+    Product memory product = allProducts[_offerId - 1];
+    Seller memory seller = sellers[product.sellerAddress];
+    
+    return (seller.name, seller.location);
+	}
+	
 	function createProduct(
 		string memory _type,
 		uint256 _price,

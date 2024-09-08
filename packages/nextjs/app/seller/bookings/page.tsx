@@ -2,46 +2,31 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import { erc20Abi_bytes32 } from "viem";
+import { useAccount, useWriteContract } from "wagmi";
+import { useDeployedContractInfo, useScaffoldReadContract, useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
 
-interface Booking {
-  id: string;
-  deviceBrand: string;
-  deviceModel: string;
-  purchaseDate: string;
-  status: "Pending" | "Completed" | "Refunded";
+interface BookingItemProps {
+  certId: bigint;
 }
 
 const SellerBookings: React.FC = () => {
-  const [bookings, setBookings] = useState<Booking[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { address } = useAccount();
+  const [certificateIds, setCertificateIds] = useState<bigint[]>([]);
 
-  useEffect(() => {
-    const fetchBookings = async () => {
-      // Simulating an API call or blockchain read
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Mock data
-      const mockBookings: Booking[] = [
-        { id: "1", deviceBrand: "Apple", deviceModel: "iPhone 7", purchaseDate: "2023-09-15", status: "Pending" },
-        { id: "2", deviceBrand: "Samsung", deviceModel: "Galaxy S21", purchaseDate: "2023-09-20", status: "Pending" },
-        { id: "3", deviceBrand: "Google", deviceModel: "Pixel 6", purchaseDate: "2023-08-10", status: "Completed" },
-        { id: "4", deviceBrand: "OnePlus", deviceModel: "9 Pro", purchaseDate: "2023-08-05", status: "Refunded" },
-      ];
-
-      setBookings(mockBookings);
-      setIsLoading(false);
-    };
-
-    fetchBookings();
-  }, []);
-
-  const sortedBookings = [...bookings].sort((a, b) => {
-    if (a.status === "Pending" && b.status !== "Pending") return -1;
-    if (a.status !== "Pending" && b.status === "Pending") return 1;
-    return 0;
+  const { data: fetchedCertificateIds, isLoading: isCertificateIdsLoading } = useScaffoldReadContract({
+    contractName: "VerifyMyDevice",
+    functionName: "getAllPurchasedCertificatesBySeller",
+    args: [address as string],
   });
 
-  if (isLoading) {
+  useEffect(() => {
+    if (fetchedCertificateIds) {
+      setCertificateIds(fetchedCertificateIds);
+    }
+  }, [fetchedCertificateIds]);
+
+  if (isCertificateIdsLoading) {
     return <div className="text-center mt-8">Loading bookings...</div>;
   }
 
@@ -59,39 +44,121 @@ const SellerBookings: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {sortedBookings.map(booking => (
-              <tr key={booking.id}>
-                <td>{booking.purchaseDate}</td>
-                <td>
-                  {booking.deviceBrand} {booking.deviceModel}
-                </td>
-                <td>
-                  <span
-                    className={`
-                    ${booking.status === "Completed" ? "text-green-600" : ""}
-                    ${booking.status === "Pending" ? "text-yellow-600" : ""}
-                    ${booking.status === "Refunded" ? "text-red-600" : ""}
-                  `}
-                  >
-                    {booking.status}
-                  </span>
-                </td>
-                <td>
-                  {booking.status === "Pending" && (
-                    <>
-                      <Link href={`/seller/issue-certification/${booking.id}`} className="btn btn-primary btn-sm mr-2">
-                        Issue Certificate
-                      </Link>
-                      <button className="btn btn-error btn-sm">Refund</button>
-                    </>
-                  )}
-                </td>
-              </tr>
+            {certificateIds.map(certId => (
+              <BookingItem certId={certId} key={certId.toString()} />
             ))}
           </tbody>
         </table>
       </div>
     </div>
+  );
+};
+
+const BookingItem: React.FC<BookingItemProps> = ({ certId }) => {
+  const { address } = useAccount();
+  const { data: certificate, isLoading } = useScaffoldReadContract({
+    contractName: "VerifyMyDevice",
+    functionName: "getCertificateDetails",
+    args: [certId],
+  });
+  const [isApproved, setIsApproved] = useState(false);
+  const { writeContract } = useWriteContract();
+  const { data: deployedContractData } = useDeployedContractInfo("VerifyMyDevice");
+
+  const { data: product } = useScaffoldReadContract({
+    contractName: "VerifyMyDevice",
+    functionName: "products",
+    args: [certificate?.productId || BigInt("0")],
+  });
+
+  const handleApprove = async () => {
+    writeContract({
+      abi: erc20Abi_bytes32,
+      address: product?.[2] as string,
+      functionName: "approve",
+      args: [deployedContractData?.address as string, BigInt(product?.[2] || "0")],
+    });
+    setIsApproved(true);
+  };
+
+  const { writeContractAsync: refundCertificate, isPending: isRefunding } = useScaffoldWriteContract("VerifyMyDevice");
+
+  const handleRefund = async () => {
+    try {
+      await refundCertificate({
+        functionName: "refundCertificate",
+        args: [certId],
+      });
+      // Assuming success, you might want to refetch the data here or handle state externally.
+    } catch (error) {
+      console.error("Error refunding certificate:", error);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <tr>
+        <td colSpan={4} className="text-center">
+          Loading...
+        </td>
+      </tr>
+    );
+  }
+
+  if (!certificate) {
+    return (
+      <tr>
+        <td colSpan={4} className="text-center">
+          Certificate not found
+        </td>
+      </tr>
+    );
+  }
+
+  const status = certificate.isCompleted ? "Completed" : certificate.isRefunded ? "Refunded" : "Pending";
+  const purchaseDate = new Date().toISOString().split("T")[0]; // Mocking the purchase date
+
+  return (
+    <tr>
+      <td>{purchaseDate}</td>
+      <td>
+        {certificate.deviceBrand} {certificate.deviceModel}
+      </td>
+      <td>
+        <span
+          className={`
+            ${status === "Completed" ? "text-green-600" : ""}
+            ${status === "Pending" ? "text-yellow-600" : ""}
+            ${status === "Refunded" ? "text-red-600" : ""}
+          `}
+        >
+          {status}
+        </span>
+      </td>
+      <td>
+        {status === "Pending" && (
+          <>
+            <Link href={`/seller/issue-certification/${certId.toString()}`} className="btn btn-primary btn-sm mr-2">
+              Issue Certificate
+            </Link>
+            <button
+              className={`btn btn-error btn-sm ${isRefunding ? "loading" : ""}`}
+              onClick={handleRefund}
+              disabled={isRefunding}
+            >
+              {isRefunding ? "Refunding..." : "Refund"}
+            </button>
+            <button
+              className={`btn btn-error btn-sm ${isApproved ? "loading" : ""}`}
+              onClick={handleApprove}
+              disabled={isApproved}
+            >
+              {isApproved ? "Aproving..." : "Approve"}
+            </button>
+          </>
+        )}
+      </td>
+    </tr>
   );
 };
 

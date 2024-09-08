@@ -1,61 +1,74 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import { formatEther, parseEther } from "viem";
 import SetupNotification from "~~/components/SetupNotification";
+import { Address } from "~~/components/scaffold-eth";
+import { TokenAddress } from "~~/components/scaffold-eth/TokenAddress";
+import { useScaffoldReadContract } from "~~/hooks/scaffold-eth";
 
 interface Offer {
   sellerAddress: string;
   offerId: string;
-  sellerName: string;
-  sellerLocation: string;
-  deviceType: "Phone" | "Laptop";
+  deviceType: string;
   certificationPrice: number;
   token: string;
 }
 
-const MOCK_OFFERS: Offer[] = [
-  {
-    sellerAddress: "0x1234567890123456789012345678901234567890",
-    offerId: "1",
-    sellerName: "Rome Phone Service",
-    sellerLocation: "Rome",
-    deviceType: "Phone",
-    certificationPrice: 15,
-    token: "USDT",
-  },
-  {
-    sellerAddress: "0x1234567890123456789012345678901234567890",
-    offerId: "2",
-    sellerName: "Rome Phone Service",
-    sellerLocation: "Rome",
-    deviceType: "Laptop",
-    certificationPrice: 20,
-    token: "USDT",
-  },
-  {
-    sellerAddress: "0x0987654321098765432109876543210987654321",
-    offerId: "1",
-    sellerName: "Milan Tech Cert",
-    sellerLocation: "Milan",
-    deviceType: "Phone",
-    certificationPrice: 18,
-    token: "USDT",
-  },
-  {
-    sellerAddress: "0x0987654321098765432109876543210987654321",
-    offerId: "2",
-    sellerName: "Milan Tech Cert",
-    sellerLocation: "Milan",
-    deviceType: "Laptop",
-    certificationPrice: 25,
-    token: "USDT",
-  },
-];
+interface OfferEntry {
+  sellerName: string;
+  sellerLocation: string;
+}
+
+function OfferEntry(props: { offer: Offer }) {
+  const { data: seller } = useScaffoldReadContract({
+    contractName: "VerifyMyDevice",
+    functionName: "sellers",
+    args: [props.offer.sellerAddress],
+  });
+
+  return (
+    <tr>
+      <td>{seller?.[0]}</td>
+      <td>{seller?.[1]}</td>
+      <td>{props.offer.deviceType}</td>
+      <td>
+        {props.offer.certificationPrice} <TokenAddress address={props.offer.token} format="short" />
+      </td>
+      <td>
+        <Link
+          href={`/buyer/certification-details/${props.offer.sellerAddress}/${props.offer.offerId}`}
+          className="btn btn-primary btn-sm"
+        >
+          Buy
+        </Link>
+      </td>
+    </tr>
+  );
+}
 
 const FindCertification: React.FC = () => {
-  const [offers] = useState<Offer[]>(MOCK_OFFERS);
+  const [offers, setOffers] = useState<Offer[]>([]);
   const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
+
+  const { data: allProducts } = useScaffoldReadContract({
+    contractName: "VerifyMyDevice",
+    functionName: "getAllProducts",
+  });
+
+  useEffect(() => {
+    if (allProducts) {
+      const formattedOffers = allProducts.map((product: any, index: number) => ({
+        sellerAddress: product.sellerAddress as string,
+        offerId: index.toString(),
+        certificationPrice: parseFloat(formatEther(product.price)),
+        deviceType: product.deviceType,
+        token: product.tokenAddress as string,
+      }));
+      setOffers(formattedOffers);
+    }
+  }, [allProducts]);
 
   return (
     <div className="container mx-auto px-2 py-2">
@@ -76,22 +89,7 @@ const FindCertification: React.FC = () => {
             </thead>
             <tbody>
               {offers.map(offer => (
-                <tr key={`${offer.sellerAddress}-${offer.offerId}`}>
-                  <td>{offer.sellerName}</td>
-                  <td>{offer.sellerLocation}</td>
-                  <td>{offer.deviceType}</td>
-                  <td>
-                    {offer.certificationPrice} {offer.token}
-                  </td>
-                  <td>
-                    <Link
-                      href={`/buyer/certification-details/${offer.sellerAddress}/${offer.offerId}`}
-                      className="btn btn-primary btn-sm"
-                    >
-                      Buy
-                    </Link>
-                  </td>
-                </tr>
+                <OfferEntry key={`${offer.sellerAddress}-${offer.offerId}`} offer={offer}></OfferEntry>
               ))}
             </tbody>
           </table>

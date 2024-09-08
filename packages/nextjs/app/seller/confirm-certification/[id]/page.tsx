@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
+import { useScaffoldReadContract, useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
 
 interface BuyerDetails {
   brand: string;
@@ -20,41 +21,61 @@ interface SellerDetails {
 const ConfirmCertification: React.FC = () => {
   const params = useParams();
   const searchParams = useSearchParams();
-  const { id } = params;
+  const { id: certificateId } = params;
 
   const [buyerDetails, setBuyerDetails] = useState<BuyerDetails | null>(null);
   const [sellerDetails, setSellerDetails] = useState<SellerDetails | null>(null);
   const [isConfirmed, setIsConfirmed] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
+  const { data: certificate } = useScaffoldReadContract({
+    contractName: "VerifyMyDevice",
+    functionName: "getCertificateDetails",
+    args: [BigInt(certificateId as string)],
+  });
+
+  const { writeContractAsync: completeCertification, isPending: isCompletingCertification } =
+    useScaffoldWriteContract("VerifyMyDevice");
   useEffect(() => {
-    // Fetch buyer details (mock for now)
-    const fetchBuyerDetails = async () => {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500));
+    if (certificate) {
       setBuyerDetails({
-        brand: "Apple",
-        model: "iPhone 7",
-        serialNumberHash: "0x1234567890abcdef...",
+        brand: certificate.deviceBrand,
+        model: certificate.deviceModel,
+        serialNumberHash: certificate.serialNumberHash,
       });
-    };
+    }
 
-    fetchBuyerDetails();
-
-    // Get seller details from URL parameters
     const details = searchParams.get("details");
     if (details) {
       setSellerDetails(JSON.parse(decodeURIComponent(details)));
     }
-  }, [id, searchParams]);
+    console.log(certificate, "===============", details);
 
+    // Set isLoading to false once we have both buyer and seller details
+    if (certificate && details) {
+      setIsLoading(false);
+    }
+  }, [certificate, searchParams]);
   const handleConfirm = async () => {
     setIsLoading(true);
-    // Simulate blockchain interaction
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    console.log("Creating on-chain proof:", { buyerDetails, sellerDetails });
+    try {
+      await completeCertification({
+        functionName: "completeCertification",
+        args: [
+          BigInt(certificateId as string),
+          sellerDetails?.brand || "",
+          sellerDetails?.model || "",
+          sellerDetails?.variant || "",
+          sellerDetails?.condition || "",
+          sellerDetails?.remarks || "",
+        ],
+      });
+      alert("Certification proof created successfully!");
+    } catch (error) {
+      console.error("Error creating certification proof:", error);
+      alert("Failed to create certification proof. Please try again.");
+    }
     setIsLoading(false);
-    alert("Certification proof created successfully!");
   };
 
   if (!buyerDetails || !sellerDetails) {
@@ -109,10 +130,10 @@ const ConfirmCertification: React.FC = () => {
         </div>
         <button
           onClick={handleConfirm}
-          className={`btn btn-primary ${isLoading ? "loading" : ""}`}
-          disabled={!isConfirmed || isLoading}
+          className={`btn btn-primary ${isLoading || isCompletingCertification ? "loading" : ""}`}
+          disabled={!isConfirmed || isLoading || isCompletingCertification}
         >
-          Create On-Chain Proof
+          {isCompletingCertification ? "Creating Proof..." : "Create On-Chain Proof"}
         </button>
       </div>
     </div>

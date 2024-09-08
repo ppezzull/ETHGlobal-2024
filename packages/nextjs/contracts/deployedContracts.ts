@@ -6,465 +6,8 @@ import { GenericContractsDeclaration } from "~~/utils/scaffold-eth/contract";
 
 const deployedContracts = {
   31337: {
-    CertificationNFT: {
-      address: "0x5FbDB2315678afecb367f032d93F642f64180aa3",
-      abi: [
-        {
-          inputs: [],
-          stateMutability: "nonpayable",
-          type: "constructor",
-        },
-        {
-          anonymous: false,
-          inputs: [
-            {
-              indexed: true,
-              internalType: "address",
-              name: "owner",
-              type: "address",
-            },
-            {
-              indexed: true,
-              internalType: "address",
-              name: "approved",
-              type: "address",
-            },
-            {
-              indexed: true,
-              internalType: "uint256",
-              name: "tokenId",
-              type: "uint256",
-            },
-          ],
-          name: "Approval",
-          type: "event",
-        },
-        {
-          anonymous: false,
-          inputs: [
-            {
-              indexed: true,
-              internalType: "address",
-              name: "owner",
-              type: "address",
-            },
-            {
-              indexed: true,
-              internalType: "address",
-              name: "operator",
-              type: "address",
-            },
-            {
-              indexed: false,
-              internalType: "bool",
-              name: "approved",
-              type: "bool",
-            },
-          ],
-          name: "ApprovalForAll",
-          type: "event",
-        },
-        {
-          anonymous: false,
-          inputs: [
-            {
-              indexed: true,
-              internalType: "address",
-              name: "from",
-              type: "address",
-            },
-            {
-              indexed: true,
-              internalType: "address",
-              name: "to",
-              type: "address",
-            },
-            {
-              indexed: true,
-              internalType: "uint256",
-              name: "tokenId",
-              type: "uint256",
-            },
-          ],
-          name: "Transfer",
-          type: "event",
-        },
-        {
-          inputs: [
-            {
-              internalType: "address",
-              name: "to",
-              type: "address",
-            },
-            {
-              internalType: "uint256",
-              name: "tokenId",
-              type: "uint256",
-            },
-          ],
-          name: "approve",
-          outputs: [],
-          stateMutability: "nonpayable",
-          type: "function",
-        },
-        {
-          inputs: [
-            {
-              internalType: "address",
-              name: "owner",
-              type: "address",
-            },
-          ],
-          name: "balanceOf",
-          outputs: [
-            {
-              internalType: "uint256",
-              name: "",
-              type: "uint256",
-            },
-          ],
-          stateMutability: "view",
-          type: "function",
-        },
-        {
-          inputs: [
-            {
-              internalType: "uint256",
-              name: "",
-              type: "uint256",
-            },
-          ],
-          name: "certifications",
-          outputs: [
-            {
-              internalType: "string",
-              name: "brand",
-              type: "string",
-            },
-            {
-              internalType: "string",
-              name: "model",
-              type: "string",
-            },
-            {
-              internalType: "string",
-              name: "variant",
-              type: "string",
-            },
-            {
-              internalType: "string",
-              name: "serialNumberHash",
-              type: "string",
-            },
-            {
-              internalType: "string",
-              name: "condition",
-              type: "string",
-            },
-            {
-              internalType: "string",
-              name: "picture",
-              type: "string",
-            },
-            {
-              internalType: "address",
-              name: "issuer",
-              type: "address",
-            },
-            {
-              internalType: "uint256",
-              name: "issueDate",
-              type: "uint256",
-            },
-          ],
-          stateMutability: "view",
-          type: "function",
-        },
-        {
-          inputs: [
-            {
-              internalType: "uint256",
-              name: "tokenId",
-              type: "uint256",
-            },
-          ],
-          name: "getApproved",
-          outputs: [
-            {
-              internalType: "address",
-              name: "",
-              type: "address",
-            },
-          ],
-          stateMutability: "view",
-          type: "function",
-        },
-        {
-          inputs: [
-            {
-              internalType: "address",
-              name: "owner",
-              type: "address",
-            },
-            {
-              internalType: "address",
-              name: "operator",
-              type: "address",
-            },
-          ],
-          name: "isApprovedForAll",
-          outputs: [
-            {
-              internalType: "bool",
-              name: "",
-              type: "bool",
-            },
-          ],
-          stateMutability: "view",
-          type: "function",
-        },
-        {
-          inputs: [
-            {
-              internalType: "address",
-              name: "to",
-              type: "address",
-            },
-            {
-              internalType: "string",
-              name: "brand",
-              type: "string",
-            },
-            {
-              internalType: "string",
-              name: "model",
-              type: "string",
-            },
-            {
-              internalType: "string",
-              name: "variant",
-              type: "string",
-            },
-            {
-              internalType: "string",
-              name: "serialNumberHash",
-              type: "string",
-            },
-            {
-              internalType: "string",
-              name: "condition",
-              type: "string",
-            },
-            {
-              internalType: "string",
-              name: "picture",
-              type: "string",
-            },
-          ],
-          name: "mintCertification",
-          outputs: [
-            {
-              internalType: "uint256",
-              name: "",
-              type: "uint256",
-            },
-          ],
-          stateMutability: "nonpayable",
-          type: "function",
-        },
-        {
-          inputs: [],
-          name: "name",
-          outputs: [
-            {
-              internalType: "string",
-              name: "",
-              type: "string",
-            },
-          ],
-          stateMutability: "view",
-          type: "function",
-        },
-        {
-          inputs: [
-            {
-              internalType: "uint256",
-              name: "tokenId",
-              type: "uint256",
-            },
-          ],
-          name: "ownerOf",
-          outputs: [
-            {
-              internalType: "address",
-              name: "",
-              type: "address",
-            },
-          ],
-          stateMutability: "view",
-          type: "function",
-        },
-        {
-          inputs: [
-            {
-              internalType: "address",
-              name: "from",
-              type: "address",
-            },
-            {
-              internalType: "address",
-              name: "to",
-              type: "address",
-            },
-            {
-              internalType: "uint256",
-              name: "tokenId",
-              type: "uint256",
-            },
-          ],
-          name: "safeTransferFrom",
-          outputs: [],
-          stateMutability: "nonpayable",
-          type: "function",
-        },
-        {
-          inputs: [
-            {
-              internalType: "address",
-              name: "from",
-              type: "address",
-            },
-            {
-              internalType: "address",
-              name: "to",
-              type: "address",
-            },
-            {
-              internalType: "uint256",
-              name: "tokenId",
-              type: "uint256",
-            },
-            {
-              internalType: "bytes",
-              name: "data",
-              type: "bytes",
-            },
-          ],
-          name: "safeTransferFrom",
-          outputs: [],
-          stateMutability: "nonpayable",
-          type: "function",
-        },
-        {
-          inputs: [
-            {
-              internalType: "address",
-              name: "operator",
-              type: "address",
-            },
-            {
-              internalType: "bool",
-              name: "approved",
-              type: "bool",
-            },
-          ],
-          name: "setApprovalForAll",
-          outputs: [],
-          stateMutability: "nonpayable",
-          type: "function",
-        },
-        {
-          inputs: [
-            {
-              internalType: "bytes4",
-              name: "interfaceId",
-              type: "bytes4",
-            },
-          ],
-          name: "supportsInterface",
-          outputs: [
-            {
-              internalType: "bool",
-              name: "",
-              type: "bool",
-            },
-          ],
-          stateMutability: "view",
-          type: "function",
-        },
-        {
-          inputs: [],
-          name: "symbol",
-          outputs: [
-            {
-              internalType: "string",
-              name: "",
-              type: "string",
-            },
-          ],
-          stateMutability: "view",
-          type: "function",
-        },
-        {
-          inputs: [
-            {
-              internalType: "uint256",
-              name: "tokenId",
-              type: "uint256",
-            },
-          ],
-          name: "tokenURI",
-          outputs: [
-            {
-              internalType: "string",
-              name: "",
-              type: "string",
-            },
-          ],
-          stateMutability: "view",
-          type: "function",
-        },
-        {
-          inputs: [
-            {
-              internalType: "address",
-              name: "from",
-              type: "address",
-            },
-            {
-              internalType: "address",
-              name: "to",
-              type: "address",
-            },
-            {
-              internalType: "uint256",
-              name: "tokenId",
-              type: "uint256",
-            },
-          ],
-          name: "transferFrom",
-          outputs: [],
-          stateMutability: "nonpayable",
-          type: "function",
-        },
-      ],
-      inheritedFunctions: {
-        approve: "@openzeppelin/contracts/token/ERC721/ERC721.sol",
-        balanceOf: "@openzeppelin/contracts/token/ERC721/ERC721.sol",
-        getApproved: "@openzeppelin/contracts/token/ERC721/ERC721.sol",
-        isApprovedForAll: "@openzeppelin/contracts/token/ERC721/ERC721.sol",
-        name: "@openzeppelin/contracts/token/ERC721/ERC721.sol",
-        ownerOf: "@openzeppelin/contracts/token/ERC721/ERC721.sol",
-        safeTransferFrom: "@openzeppelin/contracts/token/ERC721/ERC721.sol",
-        setApprovalForAll: "@openzeppelin/contracts/token/ERC721/ERC721.sol",
-        supportsInterface: "@openzeppelin/contracts/token/ERC721/ERC721.sol",
-        symbol: "@openzeppelin/contracts/token/ERC721/ERC721.sol",
-        tokenURI: "@openzeppelin/contracts/token/ERC721/ERC721.sol",
-        transferFrom: "@openzeppelin/contracts/token/ERC721/ERC721.sol",
-      },
-    },
     MockUSDT: {
-      address: "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
+      address: "0x5FbDB2315678afecb367f032d93F642f64180aa3",
       abi: [
         {
           inputs: [
@@ -781,41 +324,75 @@ const deployedContracts = {
       },
     },
     VerifyMyDevice: {
-      address: "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
+      address: "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
       abi: [
         {
+          anonymous: false,
           inputs: [
             {
+              indexed: true,
+              internalType: "uint256",
+              name: "certificateId",
+              type: "uint256",
+            },
+            {
+              indexed: true,
               internalType: "address",
-              name: "_usdtAddress",
+              name: "buyer",
               type: "address",
             },
             {
+              indexed: true,
               internalType: "address",
-              name: "_certificationNFTAddress",
+              name: "seller",
               type: "address",
             },
+            {
+              indexed: false,
+              internalType: "uint256",
+              name: "productId",
+              type: "uint256",
+            },
           ],
-          stateMutability: "nonpayable",
-          type: "constructor",
+          name: "CertificatePurchased",
+          type: "event",
         },
         {
           anonymous: false,
           inputs: [
             {
               indexed: true,
-              internalType: "address",
-              name: "owner",
-              type: "address",
+              internalType: "uint256",
+              name: "certificateId",
+              type: "uint256",
             },
             {
               indexed: true,
-              internalType: "uint256",
-              name: "tokenId",
-              type: "uint256",
+              internalType: "address",
+              name: "buyer",
+              type: "address",
             },
           ],
-          name: "CertificationAssigned",
+          name: "CertificateRefunded",
+          type: "event",
+        },
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: true,
+              internalType: "uint256",
+              name: "certificateId",
+              type: "uint256",
+            },
+            {
+              indexed: true,
+              internalType: "address",
+              name: "seller",
+              type: "address",
+            },
+          ],
+          name: "CertificationCompleted",
           type: "event",
         },
         {
@@ -830,23 +407,23 @@ const deployedContracts = {
             {
               indexed: true,
               internalType: "address",
-              name: "owner",
+              name: "seller",
               type: "address",
             },
             {
               indexed: false,
               internalType: "string",
-              name: "brand",
+              name: "deviceType",
               type: "string",
             },
             {
               indexed: false,
-              internalType: "string",
-              name: "model",
-              type: "string",
+              internalType: "uint256",
+              name: "price",
+              type: "uint256",
             },
           ],
-          name: "ProductRegistered",
+          name: "ProductCreated",
           type: "event",
         },
         {
@@ -854,32 +431,168 @@ const deployedContracts = {
           inputs: [
             {
               indexed: true,
-              internalType: "uint256",
-              name: "productId",
-              type: "uint256",
-            },
-            {
-              indexed: true,
               internalType: "address",
-              name: "prevOwner",
+              name: "seller",
               type: "address",
             },
             {
-              indexed: true,
-              internalType: "address",
-              name: "newOwner",
-              type: "address",
+              indexed: false,
+              internalType: "string",
+              name: "name",
+              type: "string",
+            },
+            {
+              indexed: false,
+              internalType: "string",
+              name: "location",
+              type: "string",
             },
           ],
-          name: "ProductSold",
+          name: "SellerAccountCreated",
+          type: "event",
+        },
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: true,
+              internalType: "address",
+              name: "seller",
+              type: "address",
+            },
+            {
+              indexed: false,
+              internalType: "string",
+              name: "name",
+              type: "string",
+            },
+            {
+              indexed: false,
+              internalType: "string",
+              name: "location",
+              type: "string",
+            },
+          ],
+          name: "SellerAccountUpdated",
           type: "event",
         },
         {
           inputs: [
             {
               internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          name: "allProducts",
+          outputs: [
+            {
+              internalType: "string",
+              name: "deviceType",
+              type: "string",
+            },
+            {
+              internalType: "uint256",
+              name: "price",
+              type: "uint256",
+            },
+            {
+              internalType: "address",
+              name: "tokenAddress",
+              type: "address",
+            },
+            {
+              internalType: "address",
+              name: "sellerAddress",
+              type: "address",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "",
+              type: "address",
+            },
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          name: "buyerCertificates",
+          outputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          name: "certificates",
+          outputs: [
+            {
+              internalType: "address",
+              name: "seller",
+              type: "address",
+            },
+            {
+              internalType: "address",
+              name: "buyer",
+              type: "address",
+            },
+            {
+              internalType: "uint256",
               name: "productId",
               type: "uint256",
+            },
+            {
+              internalType: "string",
+              name: "deviceBrand",
+              type: "string",
+            },
+            {
+              internalType: "string",
+              name: "deviceVariant",
+              type: "string",
+            },
+            {
+              internalType: "string",
+              name: "deviceModel",
+              type: "string",
+            },
+            {
+              internalType: "bytes32",
+              name: "serialNumberHash",
+              type: "bytes32",
+            },
+            {
+              internalType: "string",
+              name: "verifiedBrand",
+              type: "string",
+            },
+            {
+              internalType: "string",
+              name: "verifiedModel",
+              type: "string",
+            },
+            {
+              internalType: "string",
+              name: "verifiedVariant",
+              type: "string",
             },
             {
               internalType: "string",
@@ -888,23 +601,285 @@ const deployedContracts = {
             },
             {
               internalType: "string",
-              name: "picture",
+              name: "remarks",
+              type: "string",
+            },
+            {
+              internalType: "bool",
+              name: "isCompleted",
+              type: "bool",
+            },
+            {
+              internalType: "bool",
+              name: "isRefunded",
+              type: "bool",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "_certificateId",
+              type: "uint256",
+            },
+            {
+              internalType: "string",
+              name: "_verifiedBrand",
+              type: "string",
+            },
+            {
+              internalType: "string",
+              name: "_verifiedModel",
+              type: "string",
+            },
+            {
+              internalType: "string",
+              name: "_verifiedVariant",
+              type: "string",
+            },
+            {
+              internalType: "string",
+              name: "_condition",
+              type: "string",
+            },
+            {
+              internalType: "string",
+              name: "_remarks",
               type: "string",
             },
           ],
-          name: "assignCertification",
+          name: "completeCertification",
           outputs: [],
           stateMutability: "nonpayable",
           type: "function",
         },
         {
-          inputs: [],
-          name: "certificationNFT",
+          inputs: [
+            {
+              internalType: "string",
+              name: "_type",
+              type: "string",
+            },
+            {
+              internalType: "uint256",
+              name: "_price",
+              type: "uint256",
+            },
+            {
+              internalType: "address",
+              name: "_tokenAddress",
+              type: "address",
+            },
+          ],
+          name: "createProduct",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "string",
+              name: "_location",
+              type: "string",
+            },
+            {
+              internalType: "string",
+              name: "_name",
+              type: "string",
+            },
+          ],
+          name: "createSellerAccount",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "_buyer",
+              type: "address",
+            },
+          ],
+          name: "getAllCertificatesByBuyer",
           outputs: [
             {
-              internalType: "contract CertificationNFT",
+              internalType: "uint256[]",
               name: "",
+              type: "uint256[]",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "getAllProducts",
+          outputs: [
+            {
+              components: [
+                {
+                  internalType: "string",
+                  name: "deviceType",
+                  type: "string",
+                },
+                {
+                  internalType: "uint256",
+                  name: "price",
+                  type: "uint256",
+                },
+                {
+                  internalType: "address",
+                  name: "tokenAddress",
+                  type: "address",
+                },
+                {
+                  internalType: "address",
+                  name: "sellerAddress",
+                  type: "address",
+                },
+              ],
+              internalType: "struct VerifyMyDevice.Product[]",
+              name: "",
+              type: "tuple[]",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "_seller",
               type: "address",
+            },
+          ],
+          name: "getAllPurchasedCertificatesBySeller",
+          outputs: [
+            {
+              internalType: "uint256[]",
+              name: "",
+              type: "uint256[]",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "_certificateId",
+              type: "uint256",
+            },
+          ],
+          name: "getCertificateDetails",
+          outputs: [
+            {
+              components: [
+                {
+                  internalType: "address",
+                  name: "seller",
+                  type: "address",
+                },
+                {
+                  internalType: "address",
+                  name: "buyer",
+                  type: "address",
+                },
+                {
+                  internalType: "uint256",
+                  name: "productId",
+                  type: "uint256",
+                },
+                {
+                  internalType: "string",
+                  name: "deviceBrand",
+                  type: "string",
+                },
+                {
+                  internalType: "string",
+                  name: "deviceVariant",
+                  type: "string",
+                },
+                {
+                  internalType: "string",
+                  name: "deviceModel",
+                  type: "string",
+                },
+                {
+                  internalType: "bytes32",
+                  name: "serialNumberHash",
+                  type: "bytes32",
+                },
+                {
+                  internalType: "string",
+                  name: "verifiedBrand",
+                  type: "string",
+                },
+                {
+                  internalType: "string",
+                  name: "verifiedModel",
+                  type: "string",
+                },
+                {
+                  internalType: "string",
+                  name: "verifiedVariant",
+                  type: "string",
+                },
+                {
+                  internalType: "string",
+                  name: "condition",
+                  type: "string",
+                },
+                {
+                  internalType: "string",
+                  name: "remarks",
+                  type: "string",
+                },
+                {
+                  internalType: "bool",
+                  name: "isCompleted",
+                  type: "bool",
+                },
+                {
+                  internalType: "bool",
+                  name: "isRefunded",
+                  type: "bool",
+                },
+              ],
+              internalType: "struct VerifyMyDevice.PurchasedCertificate",
+              name: "",
+              type: "tuple",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "_offerId",
+              type: "uint256",
+            },
+          ],
+          name: "getSellerDetailsByOfferId",
+          outputs: [
+            {
+              internalType: "string",
+              name: "",
+              type: "string",
+            },
+            {
+              internalType: "string",
+              name: "",
+              type: "string",
             },
           ],
           stateMutability: "view",
@@ -921,33 +896,8 @@ const deployedContracts = {
           name: "products",
           outputs: [
             {
-              internalType: "uint256",
-              name: "certificationId",
-              type: "uint256",
-            },
-            {
-              internalType: "address",
-              name: "owner",
-              type: "address",
-            },
-            {
               internalType: "string",
-              name: "brand",
-              type: "string",
-            },
-            {
-              internalType: "string",
-              name: "model",
-              type: "string",
-            },
-            {
-              internalType: "string",
-              name: "variant",
-              type: "string",
-            },
-            {
-              internalType: "string",
-              name: "serialNumberHash",
+              name: "deviceType",
               type: "string",
             },
             {
@@ -956,9 +906,14 @@ const deployedContracts = {
               type: "uint256",
             },
             {
-              internalType: "bool",
-              name: "sold",
-              type: "bool",
+              internalType: "address",
+              name: "tokenAddress",
+              type: "address",
+            },
+            {
+              internalType: "address",
+              name: "sellerAddress",
+              type: "address",
             },
           ],
           stateMutability: "view",
@@ -968,23 +923,70 @@ const deployedContracts = {
           inputs: [
             {
               internalType: "uint256",
-              name: "productId",
+              name: "_productId",
               type: "uint256",
             },
             {
+              internalType: "string",
+              name: "_deviceBrand",
+              type: "string",
+            },
+            {
+              internalType: "string",
+              name: "_deviceVariant",
+              type: "string",
+            },
+            {
+              internalType: "string",
+              name: "_deviceModel",
+              type: "string",
+            },
+            {
+              internalType: "bytes32",
+              name: "_serialNumberHash",
+              type: "bytes32",
+            },
+          ],
+          name: "purchaseProduct",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "_certificateId",
+              type: "uint256",
+            },
+          ],
+          name: "refundCertificate",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
               internalType: "address",
-              name: "newOwner",
+              name: "",
               type: "address",
             },
             {
               internalType: "uint256",
-              name: "price",
+              name: "",
               type: "uint256",
             },
           ],
-          name: "sellCertification",
-          outputs: [],
-          stateMutability: "nonpayable",
+          name: "sellerProducts",
+          outputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          stateMutability: "view",
           type: "function",
         },
         {
@@ -998,9 +1000,9 @@ const deployedContracts = {
           name: "sellers",
           outputs: [
             {
-              internalType: "address",
-              name: "sellerAddress",
-              type: "address",
+              internalType: "string",
+              name: "location",
+              type: "string",
             },
             {
               internalType: "string",
@@ -1008,9 +1010,9 @@ const deployedContracts = {
               type: "string",
             },
             {
-              internalType: "string",
-              name: "location",
-              type: "string",
+              internalType: "bool",
+              name: "isRegistered",
+              type: "bool",
             },
           ],
           stateMutability: "view",
@@ -1020,52 +1022,18 @@ const deployedContracts = {
           inputs: [
             {
               internalType: "string",
-              name: "brand",
+              name: "_location",
               type: "string",
             },
             {
               internalType: "string",
-              name: "model",
+              name: "_name",
               type: "string",
-            },
-            {
-              internalType: "string",
-              name: "variant",
-              type: "string",
-            },
-            {
-              internalType: "string",
-              name: "serialNumberHash",
-              type: "string",
-            },
-            {
-              internalType: "uint256",
-              name: "price",
-              type: "uint256",
             },
           ],
-          name: "setupProduct",
-          outputs: [
-            {
-              internalType: "uint256",
-              name: "",
-              type: "uint256",
-            },
-          ],
+          name: "updateSellerAccount",
+          outputs: [],
           stateMutability: "nonpayable",
-          type: "function",
-        },
-        {
-          inputs: [],
-          name: "usdtToken",
-          outputs: [
-            {
-              internalType: "contract IERC20",
-              name: "",
-              type: "address",
-            },
-          ],
-          stateMutability: "view",
           type: "function",
         },
       ],

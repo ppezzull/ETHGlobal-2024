@@ -2,6 +2,9 @@
 
 import React, { useEffect, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
+import { erc20Abi, erc20Abi_bytes32, formatEther, parseEther } from "viem";
+import { useWriteContract } from "wagmi";
+import { useDeployedContractInfo, useScaffoldReadContract, useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
 
 interface DeviceDetails {
   brand: string;
@@ -15,7 +18,7 @@ interface OfferDetails {
   offerId: string;
   sellerName: string;
   sellerLocation: string;
-  deviceType: "Phone" | "Laptop";
+  deviceType: string;
   certificationPrice: number;
   token: string;
 }
@@ -29,45 +32,74 @@ const ConfirmAndPay: React.FC = () => {
   const [isApproved, setIsApproved] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  const { data: seller } = useScaffoldReadContract({
+    contractName: "VerifyMyDevice",
+    functionName: "sellers",
+    args: [sellerAddress as string],
+  });
+
+  const { data: product } = useScaffoldReadContract({
+    contractName: "VerifyMyDevice",
+    functionName: "products",
+    args: [BigInt(Number(offerId) + 1)],
+  });
+
+  const { writeContractAsync: purchaseProduct, isPending: isPurchasing } = useScaffoldWriteContract("VerifyMyDevice");
+
+  const { writeContract } = useWriteContract();
+  const { data: deployedContractData } = useDeployedContractInfo("VerifyMyDevice");
+
   useEffect(() => {
     const details = searchParams.get("details");
     if (details) {
       setDeviceDetails(JSON.parse(decodeURIComponent(details)));
     }
 
-    // Fetch offer details (mock for now)
-    const fetchOfferDetails = async () => {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500));
-      setOfferDetails({
+    if (seller && product) {
+      const formattedDetails: OfferDetails = {
         sellerAddress: sellerAddress as string,
         offerId: offerId as string,
-        sellerName: "Rome Phone Service",
-        sellerLocation: "Rome",
-        deviceType: "Phone",
-        certificationPrice: 15,
-        token: "USDT",
-      });
-    };
-
-    fetchOfferDetails();
-  }, [sellerAddress, offerId, searchParams]);
+        sellerName: seller[0],
+        sellerLocation: seller[1],
+        deviceType: product?.[0],
+        certificationPrice: parseFloat(formatEther(product[1])),
+        token: product[2],
+      };
+      setOfferDetails(formattedDetails);
+    }
+  }, [sellerAddress, offerId, searchParams, seller, product]);
 
   const handleApprove = async () => {
     setIsLoading(true);
-    // Simulate blockchain interaction for approval
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    writeContract({
+      abi: erc20Abi_bytes32,
+      address: product?.[2] as string,
+      functionName: "approve",
+      args: [deployedContractData?.address, BigInt(product?.[1])],
+    });
     setIsApproved(true);
     setIsLoading(false);
   };
 
   const handlePay = async () => {
     setIsLoading(true);
-    // Simulate blockchain interaction for payment
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    console.log("Submitting to blockchain:", { deviceDetails, offerDetails });
+    try {
+      await purchaseProduct({
+        functionName: "purchaseProduct",
+        args: [
+          BigInt(BigInt(Number(offerId) + 1)),
+          deviceDetails?.brand || "",
+          deviceDetails?.variant || "",
+          deviceDetails?.model || "",
+          ("0x" + deviceDetails?.serialNumberHash) as `0x${string}`,
+        ],
+      });
+      alert("Certification payment successful!");
+    } catch (error) {
+      console.error("Error purchasing product:", error);
+      alert("Certification payment failed. Please try again.");
+    }
     setIsLoading(false);
-    alert("Certification payment successful!");
   };
 
   if (!deviceDetails || !offerDetails) {

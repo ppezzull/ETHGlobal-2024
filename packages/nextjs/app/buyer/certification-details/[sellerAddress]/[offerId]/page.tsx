@@ -2,14 +2,17 @@
 
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { formatEther } from "viem";
+import { TokenAddress } from "~~/components/scaffold-eth/TokenAddress";
+import { useScaffoldReadContract } from "~~/hooks/scaffold-eth";
 
 interface OfferDetails {
   sellerAddress: string;
   offerId: string;
   sellerName: string;
   sellerLocation: string;
-  deviceType: "Phone" | "Laptop";
-  certificationPrice: number;
+  deviceType: string;
+  certificationPrice: string;
   token: string;
 }
 
@@ -35,24 +38,32 @@ const CertificationDetails: React.FC = () => {
     serialNumberHash: "",
   });
 
+  const { data: seller } = useScaffoldReadContract({
+    contractName: "VerifyMyDevice",
+    functionName: "sellers",
+    args: [sellerAddress as string],
+  });
+
+  const { data: product } = useScaffoldReadContract({
+    contractName: "VerifyMyDevice",
+    functionName: "products",
+    args: [BigInt(Number(offerId) + 1)],
+  });
+
   useEffect(() => {
-    // Simulating fetching offer details
-    const fetchOfferDetails = async () => {
-      await new Promise(resolve => setTimeout(resolve, 500));
-      const mockDetails: OfferDetails = {
+    if (seller && product) {
+      const formattedDetails: OfferDetails = {
         sellerAddress: sellerAddress as string,
         offerId: offerId as string,
-        sellerName: "Rome Phone Service",
-        sellerLocation: "Rome",
-        deviceType: "Phone",
-        certificationPrice: 15,
-        token: "USDT",
+        sellerName: seller[0],
+        sellerLocation: seller[1],
+        deviceType: product[0],
+        certificationPrice: parseFloat(formatEther(product?.[1])).toString(),
+        token: product?.[2],
       };
-      setOfferDetails(mockDetails);
-    };
-
-    fetchOfferDetails();
-  }, [sellerAddress, offerId]);
+      setOfferDetails(formattedDetails);
+    }
+  }, [seller, product, sellerAddress, offerId]);
 
   const handleInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -71,6 +82,7 @@ const CertificationDetails: React.FC = () => {
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
   };
+  
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -105,7 +117,8 @@ const CertificationDetails: React.FC = () => {
             <strong>Device Type:</strong> {offerDetails.deviceType}
           </p>
           <p>
-            <strong>Certification Price:</strong> {offerDetails.certificationPrice} {offerDetails.token}
+            <strong>Certification Price:</strong> {offerDetails.certificationPrice}{" "}
+            <TokenAddress address={offerDetails.token} />
           </p>
           <p>
             <strong>Seller Address:</strong> {offerDetails.sellerAddress}
