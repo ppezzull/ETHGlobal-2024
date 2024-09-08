@@ -46,7 +46,7 @@ const MyCertifications: React.FC = () => {
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {certifications.map(cert => (
-            <Link href={`/buyer/certifications/${cert.id}`} key={cert.id} className="block">
+            <Link href={`/certifications/${cert.id}`} key={cert.id} className="block">
               <div className="bg-base-200 shadow-md rounded p-4 hover:shadow-lg transition-shadow">
                 <h2 className="text-xl font-semibold mb-2">
                   {cert.deviceBrand} {cert.deviceModel}

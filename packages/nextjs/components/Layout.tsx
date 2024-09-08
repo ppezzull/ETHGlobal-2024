@@ -1,15 +1,20 @@
 "use client";
 
 import React, { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { RainbowKitCustomConnectButton } from "./scaffold-eth/RainbowKitCustomConnectButton";
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
   const [userType, setUserType] = useState("buyer");
   const pathname = usePathname();
+  const router = useRouter();
 
   const toggleUserType = () => {
-    setUserType(userType === "buyer" ? "seller" : "buyer");
+    const newUserType = userType === "buyer" ? "seller" : "buyer";
+    setUserType(newUserType);
+    router.push(newUserType === "buyer" ? "/buyer/find-seller" : "/seller/bookings");
   };
 
   return (
@@ -17,13 +22,18 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
       {/* Navbar */}
       <nav className="bg-primary text-primary-content shadow-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex">
-              <div className="flex-shrink-0 flex items-center">
-                <span className="text-xl font-bold">Smartphone Marketplace</span>
-              </div>
-            </div>
+          <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
+              <div className="flex-shrink-0 mr-4">
+                <Image src="/logo.png" alt="VerifyMyDevice Logo" width={40} height={40} className="rounded-full" />
+              </div>
+              <span className="text-xl font-bold">Verify-My-Device, proof of device condition</span>
+            </div>
+            <div className="flex items-center space-x-4">
+              <RainbowKitCustomConnectButton />
+              <Link href="/debug" className="btn btn-secondary">
+                Debug
+              </Link>
               <button onClick={toggleUserType} className="btn btn-secondary">
                 Switch to {userType === "buyer" ? "Seller" : "Buyer"}
               </button>
@@ -34,8 +44,8 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
 
       <div className="flex flex-1">
         {/* Sidebar */}
-        <div className="w-64 bg-base-200 shadow-md">
-          <div className="p-4">
+        <div className="w-64 bg-base-200 shadow-md flex flex-col">
+          <div className="flex-grow p-4">
             <h2 className="text-lg font-semibold mb-4">{userType === "buyer" ? "Buyer" : "Seller"} Menu</h2>
             <ul>
               {userType === "buyer" ? (
@@ -91,8 +101,15 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
             <Link href="/debug" className="btn btn-outline w-full mb-2">
               Debug
             </Link>
-            <Link href={userType === "seller" ? "/seller/create-account" : "#"} className="btn btn-primary w-full">
-              Create Account
+            <button
+              className={`btn w-full mb-2 ${userType === "seller" ? "btn-primary" : "btn-disabled"}`}
+              onClick={() => userType === "seller" && router.push("/seller/create-account")}
+              title={userType === "seller" ? "Configure Seller Account" : "Switch to Seller to create an account"}
+            >
+              Configure Seller Account
+            </button>
+            <Link href="/" className="btn btn-secondary w-full">
+              Back to Landing
             </Link>
           </div>
         </div>
