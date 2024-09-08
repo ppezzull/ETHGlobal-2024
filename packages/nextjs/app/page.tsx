@@ -1,71 +1,99 @@
 "use client";
 
+import React, { useState } from "react";
 import Link from "next/link";
-import type { NextPage } from "next";
-import { useAccount } from "wagmi";
-import { BugAntIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
-import { Address } from "~~/components/scaffold-eth";
 
-const Home: NextPage = () => {
-  const { address: connectedAddress } = useAccount();
+const HomePage: React.FC = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
-    <>
-      <div className="flex items-center flex-col flex-grow pt-10">
-        <div className="px-5">
-          <h1 className="text-center">
-            <span className="block text-2xl mb-2">Welcome to</span>
-            <span className="block text-4xl font-bold">Scaffold-ETH 2</span>
-          </h1>
-          <div className="flex justify-center items-center space-x-2 flex-col sm:flex-row">
-            <p className="my-2 font-medium">Connected Address:</p>
-            <Address address={connectedAddress} />
-          </div>
-          <p className="text-center text-lg">
-            Get started by editing{" "}
-            <code className="italic bg-base-300 text-base font-bold max-w-full break-words break-all inline-block">
-              packages/nextjs/app/page.tsx
-            </code>
-          </p>
-          <p className="text-center text-lg">
-            Edit your smart contract{" "}
-            <code className="italic bg-base-300 text-base font-bold max-w-full break-words break-all inline-block">
-              YourContract.sol
-            </code>{" "}
-            in{" "}
-            <code className="italic bg-base-300 text-base font-bold max-w-full break-words break-all inline-block">
-              packages/hardhat/contracts
-            </code>
-          </p>
-        </div>
+    <div className="container mx-auto px-2 py-2">
+      <h1 className="text-4xl font-bold mb-6 text-center">Welcome to VerifyMyDevice</h1>
 
-        <div className="flex-grow bg-base-300 w-full mt-16 px-8 py-12">
-          <div className="flex justify-center items-center gap-12 flex-col sm:flex-row">
-            <div className="flex flex-col bg-base-100 px-10 py-10 text-center items-center max-w-xs rounded-3xl">
-              <BugAntIcon className="h-8 w-8 fill-secondary" />
-              <p>
-                Tinker with your smart contract using the{" "}
-                <Link href="/debug" passHref className="link">
-                  Debug Contracts
-                </Link>{" "}
-                tab.
-              </p>
-            </div>
-            <div className="flex flex-col bg-base-100 px-10 py-10 text-center items-center max-w-xs rounded-3xl">
-              <MagnifyingGlassIcon className="h-8 w-8 fill-secondary" />
-              <p>
-                Explore your local transactions with the{" "}
-                <Link href="/blockexplorer" passHref className="link">
-                  Block Explorer
-                </Link>{" "}
-                tab.
-              </p>
-            </div>
+      <section className="mb-12">
+        <h2 className="text-2xl font-semibold mb-4">The Trust Solution for Second-Hand Device Markets</h2>
+        <p className="mb-4">
+          VerifyMyDevice bridges the trust gap in second-hand device markets. We provide a platform for device
+          certification, enabling fair prices for sellers and peace of mind for buyers.
+        </p>
+      </section>
+
+      <section className="mb-12">
+        <h2 className="text-2xl font-semibold mb-4">How It Works</h2>
+        <div className="grid md:grid-cols-3 gap-6">
+          <div className="bg-base-200 p-4 rounded-lg">
+            <h3 className="font-bold mb-2">For Device Owners</h3>
+            <p>
+              Find a nearby certification shop to get your device certified. Attach the certification to your listing on
+              any marketplace.
+            </p>
+          </div>
+          <div className="bg-base-200 p-4 rounded-lg">
+            <h3 className="font-bold mb-2">For Buyers</h3>
+            <p>Verify certifications provided by sellers. Make informed decisions based on trustworthy information.</p>
+          </div>
+          <div className="bg-base-200 p-4 rounded-lg">
+            <h3 className="font-bold mb-2">For Certification Shops</h3>
+            <p>
+              Offer your expertise to certify devices. Set your own prices and earn income by securing marketplaces.
+            </p>
           </div>
         </div>
-      </div>
-    </>
+      </section>
+
+      <section className="mb-12">
+        <h2 className="text-2xl font-semibold mb-4">The Certification Process</h2>
+        <ol className="list-decimal list-inside space-y-2">
+          <li>Device owner provides initial device information.</li>
+          <li>At the physical location, the owner reviews the device, adding pictures and remarks.</li>
+          <li>The certification shop assesses the device independently.</li>
+          <li>Both assessments are stored, creating a comprehensive and verifiable certification.</li>
+        </ol>
+        <p className="mt-4">
+          This mutual review system reduces malicious attempts. Any inconsistencies between the owner&apos;s claims and
+          the shop&apos;s assessment serve as red flags for potential buyers.
+        </p>
+      </section>
+
+      <section className="mb-12">
+        <h2 className="text-2xl font-semibold mb-4">Pricing and Tokens</h2>
+        <p>
+          Certification shops set their own prices and choose which tokens they accept for payment. This flexibility
+          allows shops to adapt to their local market conditions and preferences.
+        </p>
+      </section>
+
+      <section className="mb-12">
+        <h2 className="text-2xl font-semibold mb-4">KYC Requirements for Certification Shops</h2>
+        <p>
+          To ensure the right incentives and hinder bad actors, certification shops are required to complete a Know Your
+          Customer (KYC) process. This allows us to maintain the integrity of our platform and provides a means for
+          legal recourse in case of detected fraud.
+        </p>
+      </section>
+
+      <section className="flex justify-center space-x-8">
+        <Link href="/buyer/find-seller" className="btn btn-primary btn-lg">
+          I&apos;m a Buyer - Find an Certification Issuer
+        </Link>
+        <Link href="/seller/create-account" className="btn btn-secondary btn-lg">
+          I&apos;m a Seller - Create an Account
+        </Link>
+      </section>
+
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+          <div className="bg-white p-6 rounded-lg">
+            <h2 className="text-xl font-bold mb-4">Get Notified</h2>
+            <p>Modal content for XMTP messaging will be added here.</p>
+            <button onClick={() => setIsModalOpen(false)} className="mt-4 btn btn-primary">
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 
-export default Home;
+export default HomePage;

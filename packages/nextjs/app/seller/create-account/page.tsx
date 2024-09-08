@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 
 interface SellerInfo {
   name: string;
@@ -8,6 +9,7 @@ interface SellerInfo {
 }
 
 const CreateSellerAccount: React.FC = () => {
+  const router = useRouter();
   const [sellerInfo, setSellerInfo] = useState<SellerInfo>({
     name: "",
     location: "",
@@ -29,6 +31,7 @@ const CreateSellerAccount: React.FC = () => {
       console.log("Seller account created:", sellerInfo);
       setIsLoading(false);
       setIsCreated(true);
+      router.push(`/seller/bookings`);
     }, 1000); // Simulate a 1-second delay
   };
 
@@ -50,7 +53,7 @@ const CreateSellerAccount: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-2 py-2">
       <h1 className="text-3xl font-bold mb-6">Create Seller Account</h1>
       <form onSubmit={handleSubmit} className="bg-base-200 shadow-md rounded px-8 pt-6 pb-8 mb-4 max-w-md mx-auto">
         <div className="mb-4">

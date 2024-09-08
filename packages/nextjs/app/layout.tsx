@@ -8,7 +8,7 @@ import { getMetadata } from "~~/utils/scaffold-eth/getMetadata";
 
 export const metadata = getMetadata({
   title: "VerifyMyDevice", // Updated title
-  description: "Proof of Condition", // Updated description
+  description: "proof of device condition", // Updated description
 });
 
 const ScaffoldEthApp = ({ children }: { children: React.ReactNode }) => {

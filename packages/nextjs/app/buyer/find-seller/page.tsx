@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import SetupNotification from "~~/components/SetupNotification";
 
 interface Offer {
   sellerAddress: string;
@@ -54,9 +55,10 @@ const MOCK_OFFERS: Offer[] = [
 
 const FindCertification: React.FC = () => {
   const [offers] = useState<Offer[]>(MOCK_OFFERS);
+  const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-2 py-2">
       <h1 className="text-3xl font-bold mb-6">Find Certification</h1>
       <div className="bg-base-200 shadow-md rounded p-6">
         <h2 className="text-xl font-semibold mb-4">1. Find certification</h2>
@@ -94,7 +96,13 @@ const FindCertification: React.FC = () => {
             </tbody>
           </table>
         </div>
+        <div className="mt-6 text-center">
+          <button onClick={() => setIsNotificationModalOpen(true)} className="btn btn-secondary">
+            No nearby issuer? Get notified about new offers
+          </button>
+        </div>
       </div>
+      {isNotificationModalOpen && <SetupNotification onClose={() => setIsNotificationModalOpen(false)} />}
     </div>
   );
 };
